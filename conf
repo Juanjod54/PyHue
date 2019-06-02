@@ -1,0 +1,23 @@
+{
+    "1": 
+    {
+        "state": 
+        {
+            "on": False, 
+            "bri": 181, 
+            "hue": 57764, 
+            "sat": 238, 
+            "effect": "none", 
+            "xy": [0.4557, 0.214], 
+            "ct": 362, 
+            "alert": "none", 
+            "colormode": "hs", 
+            "reachable": True
+        }, 
+        "type": "Extended color light", 
+        "name": "Lamparilla mesa", 
+        "modelid": "LCT001", 
+        "manufacturername": "Philips", 
+        "uniqueid": "00:17:88:01:00:f5:5e:92-0b", 
+        "swversion": "5.23.1.13187"
+    }
