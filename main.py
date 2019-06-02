@@ -1,3 +1,4 @@
+import os
 import json
 import time
 import requests
@@ -9,6 +10,8 @@ class hue:
 
     def __init__(self):
         
+        self.set_brightness_thread = None
+
         self.ip = 0
 
         #Creates the gui
@@ -26,6 +29,7 @@ class hue:
             self.app.addLabel("noBridgeFoundHelp", "Check you are online and on the same network")
 
         self.app.go()
+        self.app.setStopFunction(self.exit())
 
     def setup_bridge(self):
 
@@ -33,26 +37,32 @@ class hue:
         self.lights = self.bridge.list_lights()
 
         for light in self.lights:
+
             status = False
-
-            self.app.addLabel(light['name'] + "_light", light['name'])
-
+        
             if light['state']['on']:
                 status = "Apagar "
             else:
                 status = "Encender "
             
-            self.app.addScale(light['name'] + "_brightness")
+            self.app.addLabel(light['name'] + "_light", light['name'])
+
+            row = self.app.getRow()
+
+            if light['state']['reachable']:
+                self.app.addButton("button " + light['name'], self.turn_on_off, row, 0)
+                self.app.setButton("button " + light['name'], status)
+            else:
+                self.app.addFlashLabel("unreachable_" + light['name'], "Out of range", row, 0)
+
+            self.app.addScale(light['name'] + "_brightness", row, 1)
             self.app.setScaleRange(light['name'] + "_brightness", 1, 100, curr=light['state']['bri'])
-            self.app.showScaleValue(light['name'] + "_brightness", show=True)
-            self.app.addButton("button " + light['name'], self.turn_on_off)
-            self.app.setButton("button " + light['name'], status)
-        
-        #Thread para los scale
-        Thread(target=self.get_brightness, args=()).start()
+            self.app.setScaleChangeFunction(light['name'] + "_brightness", self.set_brightness)
+            
 
         #Thread to set the scales
-        #Thread(target=self.set_brightness, args=()).start()
+        self.set_brightness_thread = Thread(target=self.get_brightness, args=())
+        self.set_brightness_thread.start()
         
 
     def turn_on_off(self, button):
@@ -65,26 +75,22 @@ class hue:
 
 
 
-    #Thread that runs every 0.5 secs
+    # Thread that runs every 0.5 secs and updates the brightness scale
     def get_brightness(self):
         while (1):
-            brightness = self.app.getAllScales()
+            for light in self.lights:
+                brightness = self.bridge.get_brightness(light['name'])
+                self.app.setScale(light['name'] + "_brightness", brightness, callFunction=False)
+                
+            time.sleep(0.5) 
+        
+    def set_brightness(self, scale):
+        brightness = self.app.getScale(scale)
+        name = ' '.join(scale.split('_')[:-1])
+        self.bridge.set_brightness(name, brightness)
 
-            for light in self.lights:
-                self.bridge.set_brightness(light['name'], brightness[light['name'] + '_brightness'])
-                pass
-            
-            time.sleep(0.5) 
-        
-        
-    def set_brightness(self):
-        while (1):
-    
-            for light in self.lights:
-                bright = self.bridge.get_brightness(light['name'])
-                self.app.setScale(light['name'] + "_brightness", bright, callFunction=False)
-            
-            time.sleep(0.5) 
+    def exit(self):
+        os.system('kill %d' % os.getpid())
 
 if __name__ == '__main__':
         hue = hue()

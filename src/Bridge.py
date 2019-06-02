@@ -50,11 +50,6 @@ class Bridge():
         
         self.lights = lights
         return self.lights
-
-    def update_lights(self):
-        lights = []
-        for k in self.bridge.lights():
-            lights.append(self.bridge.lights[k]())
         
     #Turns on or off the light with name name
     def turn_on_off(self, name):
@@ -77,8 +72,7 @@ class Bridge():
             self.bridge.lights(index + 1, 'state', bri=bright)
 
     def get_brightness(self, name):
-        self.update_lights()
         index = self.get_index(name)
-        print(self.lights[index]['state']['bri'])
-        return 10
+        #print(self.bridge('lights', index + 1))
+        return int(self.bridge('lights', index + 1)['state']['bri']/2.49)
         
