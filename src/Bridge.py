@@ -19,7 +19,6 @@ class Bridge():
 
     def get_index(self, name):
         i = 0
-        
         # We need to take the index out of our lights array
         for light in self.lights:
             if light['name'] == name:
@@ -48,6 +47,7 @@ class Bridge():
         for k in self.bridge.lights():
             lights.append(self.bridge.lights[k]())
         
+        #Updates our local array
         self.lights = lights
         return self.lights
         
@@ -56,7 +56,7 @@ class Bridge():
 
         index = self.get_index(name)
 
-        # We change our local array to stay updated
+        #Stores the values to our local array to stay updated
         value = self.lights[index]['state']['on']
         self.lights[index]['state']['on'] = False if value else True
 
@@ -68,7 +68,9 @@ class Bridge():
         bright = int(brightness * 2.54)
         index = self.get_index(name)
         if self.lights[index]['state']['on']:
+            #Stores the values to our local array to stay updated
             self.lights[index]['state']['bri'] = bright
+            #Applies the changes
             self.bridge.lights(index + 1, 'state', bri=bright)
 
     def get_brightness(self, name):
@@ -76,3 +78,12 @@ class Bridge():
         #print(self.bridge('lights', index + 1))
         return int(self.bridge('lights', index + 1)['state']['bri']/2.49)
         
+    def set_color(self, name, hue, saturation, value):
+        index = self.get_index(name)
+        #Stores the values to our local array to stay updated
+        self.lights[index]['state']['hue'] = hue
+        self.lights[index]['state']['sat'] = 240
+
+        #Applies the changes
+        self.bridge.lights(index + 1, 'state', sat=240)
+        self.bridge.lights(index + 1, 'state', hue=hue)

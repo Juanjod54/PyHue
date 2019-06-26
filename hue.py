@@ -2,6 +2,9 @@ import os
 import json
 import time
 import requests
+
+import src.color as colors
+
 from appJar import gui
 from threading import Thread
 from src.Bridge import Bridge
@@ -74,6 +77,8 @@ class hue:
         self.availability_thread = Thread(target=self.update_bridge, args=())
         self.availability_thread.start()
 
+        self.set_color(None)
+
     def turn_on_off(self, button):
         name = ' '.join(button.split(' ')[1:])
         status = self.bridge.turn_on_off(name)
@@ -100,19 +105,23 @@ class hue:
                 if not light['state']['reachable']:
                     self.app.setButton("button " + light['name'], "Out of Range")
                     self.app.setButtonState("button " + light['name'], "disabled")
-                    self.app.setScaleState("button " + light['name'], "disabled")
+                    self.app.setScaleState(light['name'] + "_brightness", "disabled")
                 else:
                     self.app.setButtonState("button " + light['name'], "normal")
-                    self.app.setScaleState("button " + light['name'], "normal")
+                    self.app.setScaleState(light['name'] + "_brightness", "normal")
                     status = "Apagar" if light['state']['on'] else "Encender"
                     self.app.setButton("button " + light['name'], status)
         
-            time.sleep(2)
 
     def set_brightness(self, scale):
         brightness = self.app.getScale(scale)
         name = ' '.join(scale.split('_')[:-1])
         self.bridge.set_brightness(name, brightness)
+
+    def set_color(self, color):
+        h,s,l = colors.rgb_to_hsl(0, 0, 255)
+        print(h,s,l)
+        self.bridge.set_color("Lámpara Juanjo", h,s,l)
 
     def exit(self):
         os.system('kill %d' % os.getpid())
